@@ -30,8 +30,8 @@ void shell_process_char(char c) {
             vga_writestring("Available Commands:\n");
             vga_writestring("  help       - Display detailed descriptions of all available commands.\n");
             vga_writestring("  clear      - Clear the terminal screen of all output.\n");
-            vga_writestring("  neuro      - Trigger one execution step of the internal Spiking Neural Network.\n");
-            vga_writestring("  neuro_reset- Reset the neural network weights and state to factory defaults.\n");
+            vga_writestring("  neuro      - Step the Liquid State Machine (LSM) Neural Network.\n");
+            vga_writestring("  neuro_reset- Reset the LSM weights, topology, and state.\n");
             vga_writestring("  ls         - List files and subdirectories in the current directory.\n");
             vga_writestring("  cd [dir]   - Change current directory ('..' goes back, '/' goes to root).\n");
             vga_writestring("  cat [file] - Read and print the contents of a text file.\n");

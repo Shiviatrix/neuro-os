@@ -46,8 +46,8 @@ static void print_float2(float val) {
 }
 
 // ------------------------- knobs (simple & intuitive) -------------------------
-#define N            8          // neurons (<=32 if you want bitsets later)
-#define MAX_EDGES   24
+#define N            64         // neurons (LSM: 8 In, 48 Liquid, 8 Out)
+#define MAX_EDGES   1024
 #define SLOTS        8          // delay slots (max synaptic delay in ticks)
 
 // neuron dynamics
@@ -203,12 +203,36 @@ static void pulse(int i, float strength){
 
 void neuro_init(void){
     xorshift32_state = 123456789; // "seed"
-    for (int i=0;i<N;i++){
-        connect(i, (i+1)%N, W_INIT, 1);
+    M = 0; // reset edge count
+
+    // Liquid State Machine topology
+    // Input: 0-7, Liquid: 8-55, Output: 56-63
+    
+    // 1. Input -> Liquid (sparse, random)
+    for (int i=0; i<8; i++){
+        for (int j=0; j<4; j++) {
+            int target = 8 + (xor_rand() % 48);
+            connect(i, target, W_INIT, 1 + (xor_rand() % 3));
+        }
     }
-    connect(0, 4, 0.7f, 2);
-    connect(2, 6, 0.6f, 3);
-    connect(5, 1, 0.5f, 2);
+
+    // 2. Liquid -> Liquid (recurrent, random)
+    for (int i=8; i<56; i++){
+        for (int j=0; j<10; j++) {
+            int target = 8 + (xor_rand() % 48);
+            if (target != i) {
+                connect(i, target, W_INIT, 1 + (xor_rand() % SLOTS));
+            }
+        }
+    }
+
+    // 3. Liquid -> Output (sparse, random)
+    for (int i=56; i<64; i++){
+        for (int j=0; j<8; j++) {
+            int src = 8 + (xor_rand() % 48);
+            connect(src, i, W_INIT, 1 + (xor_rand() % 2));
+        }
+    }
 
     for (int i=0;i<N;i++){
         G[i].v = 0.0f;
@@ -226,26 +250,35 @@ void neuro_init(void){
 void neuro_step_and_print(void){
     if ((tick_now % 40) == 0) pulse(0, 0.6f);
     if ((tick_now % 95) == 0) pulse(2, 0.5f);
-    if (frand01() < 0.03f) pulse((xor_rand() % N), 0.3f);
+    if (frand01() < 0.03f) pulse((xor_rand() % 8), 0.3f); // sensory noise into Input Layer
 
     neuro_step();
 
+    int liquid_spikes = 0;
+    for (int i=8; i<56; i++) {
+        if (G[i].refrac == REF_TICKS) liquid_spikes++;
+    }
+
     vga_writestring("[t=");
     print_uint(tick_now);
-    vga_writestring("] V:");
+    vga_writestring("] Liquid Spikes: ");
+    print_uint(liquid_spikes);
+    vga_writestring("  Output V: [");
     
-    for (int i=0;i<N;i++){
+    for (int i=56; i<64; i++){
         int dv = (int)fminf_custom(9.0f, floorf_custom(G[i].v / THR_MAX * 9.0f + 0.5f));
         vga_putchar('0' + dv);
-        if (i!=N-1) vga_putchar(' ');
+        if (i!=63) vga_putchar(' ');
     }
-    vga_writestring("  thr:");
-    for (int i=0;i<N;i++){
-        int dt = (int)fminf_custom(9.0f, floorf_custom((G[i].thr-THR_MIN)/(THR_MAX-THR_MIN)*9.0f + 0.5f));
-        vga_putchar('0' + dt);
-        if (i!=N-1) vga_putchar(' ');
-    }
-    vga_writestring("  w[0->1]=");
-    print_float2(M>0 ? E[0].w : 0.0f);
+    
+    vga_writestring("]  M: ");
+    print_uint(M);
     vga_putchar('\n');
+}
+
+float neuro_get_voltage(int neuron_id) {
+    if (neuron_id >= 0 && neuron_id < N) {
+        return G[neuron_id].v;
+    }
+    return 0.0f;
 }

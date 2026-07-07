@@ -1,30 +1,27 @@
 # Neuro-OS
 
-A novel, bare-metal operating system built from scratch with a built-in Spiking Neural Network (SNN) that ticks at the hardware level alongside a cooperative multitasking scheduler. 
+A bare-metal, i686 operating system built from scratch featuring a kernel-level Liquid State Machine (LSM) that biologically drives OS process scheduling.
 
-### Features
-- **Concurrent Neural Engine**: An SNN that utilizes biologically-inspired STDP and Homeostatic learning, ticking alongside standard kernel tasks.
+### Architecture & Features
+- **Neuromorphic Lottery Scheduler**: The traditional Round-Robin scheduler is replaced. OS tasks are mapped to the Output Neurons of the LSM. CPU time is probabilistically allocated based on real-time membrane potentials, meaning the OS dynamically thinks about which task to schedule.
+- **Kernel-Level Liquid State Machine**: A 64-neuron, 1024-synapse spiking neural network partitioned into Input, Liquid/Reservoir, and Output layers. It employs Spike-Timing-Dependent Plasticity (STDP), membrane leak, refractory periods, and homeostatic regulation.
 - **SHA-256 Authentication**: A cryptographic login system built from scratch.
-- **Hierarchical VFS & Isolation**: A RAM-based file system with directory traversal and strict UID-based file isolation.
-- **TUI Finder**: A Graphical Text-Mode window manager to explore and open files.
+- **Hierarchical VFS & Isolation**: A RAM-based file system with strict UID-based file isolation and a TUI Finder (Text-Mode Window Manager).
 
-### How to Run
+### Build & Execution
 
-You will need a cross-compiler (`i686-elf-gcc`) and `qemu` installed.
+Requires `i686-elf-gcc` and `qemu`.
 
-1. **Build the OS**:
-   ```bash
-   make
-   ```
-2. **Run in QEMU**:
-   ```bash
-   qemu-system-i386 -kernel neuro-os.bin
-   ```
+```bash
+make
+qemu-system-i386 -kernel neuro-os.bin
+```
 
-### Quick Walkthrough
+### Core Commands
 
-1. **Setup**: On first boot, follow the on-screen prompt to create your root account (username & password).
-2. **Commands**: Once logged in, type `help` to see all available terminal commands.
-3. **Neural Engine**: Type `neuro` to watch the Spiking Neural Network dynamically adjust its threshold and synaptic weights.
-4. **File Management**: Type `mkdir docs` and `touch test.txt` to create folders and files. Use `write test.txt Hello!` to add content.
-5. **Finder UI**: Type `finder` to launch the graphical file explorer. Use `w` and `s` to scroll, and `Enter` to open files or navigate directories!
+Once authenticated, use the shell to interact with the system:
+- `neuro`: Step the Liquid State Machine and visualize the total liquid spikes and output membrane voltages.
+- `neuro_reset`: Reset the LSM weights, topology, and state.
+- `ps`: View the tasks currently being scheduled by the Neuromorphic Lottery Scheduler.
+- `finder`: Launch the TUI file manager.
+- `help`: List all available standard OS commands (`mkdir`, `touch`, `write`, `cat`, etc.).

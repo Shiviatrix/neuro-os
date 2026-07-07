@@ -4,5 +4,6 @@
 void neuro_init(void);
 void neuro_step(void);
 void neuro_step_and_print(void);
+float neuro_get_voltage(int neuron_id);
 
 #endif
